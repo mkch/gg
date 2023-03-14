@@ -1,0 +1,2 @@
+# gg
+ Useful golang utilities.
