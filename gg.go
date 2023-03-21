@@ -13,9 +13,9 @@ func If[T any](cond bool, truePart T, falsePart T) T {
 	}
 }
 
-// Must returns v is err is nil, or it panic with err.
-// It is useful to wrap some functions with 2 return values
-// when there is no better way to handle errors than panicking.
+// Must returns v if err is nil, or it panic with err.
+// Must is useful to wrap a function call returning value and error
+// when there is no better way to handle the error other than panicking.
 func Must[T any](v T, err error) T {
 	if err != nil {
 		panic(err)
