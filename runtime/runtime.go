@@ -60,7 +60,7 @@ func Stack(skip, nFrames int) *Frames {
 	var pcs []uintptr
 	var n int
 	if nFrames > 0 {
-		pcs = make([]uintptr, nFrames)
+		pcs = make([]uintptr, nFrames+1)
 		n = runtime.Callers(skip, pcs)
 	} else {
 		pcs = make([]uintptr, 5)
@@ -74,7 +74,7 @@ func Stack(skip, nFrames int) *Frames {
 	if n == 0 {
 		return nil
 	}
-	var ret = Frames{}
+	var ret = Frames{Complete: true}
 	frames := runtime.CallersFrames(pcs[:n])
 	i := 0
 	for {
