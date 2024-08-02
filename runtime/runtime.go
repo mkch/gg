@@ -31,7 +31,7 @@ type Frames struct {
 
 // String returns the string representation of f.
 func (f *Frames) String() string {
-	if f.Frames == nil {
+	if f == nil {
 		return "(no stack)"
 	}
 	var b strings.Builder
@@ -50,12 +50,12 @@ func (f *Frames) String() string {
 	return b.String()
 }
 
-// Stack returns the call stack of the caller.
+// Stack returns the call stack of the caller. If no frame is available, Stack returns nil.
 // If skip is 0, the returned frames start from the caller of Stack,
 // if skip is 1, they start from the caller of the caller of Stack, etc.
 // If nFrames is greater than 0, at most nFrames frames will be returned, otherwise all frames will be returned.
 // From Go/src/log/slog/value.go.
-func Stack(skip, nFrames int) Frames {
+func Stack(skip, nFrames int) *Frames {
 	skip += 2 // skip [Callers, Stack]
 	var pcs []uintptr
 	var n int
@@ -72,9 +72,9 @@ func Stack(skip, nFrames int) Frames {
 	}
 
 	if n == 0 {
-		return Frames{} // No frame.
+		return nil
 	}
-	var ret = Frames{Frames: make([]runtime.Frame, 0, 1), Complete: true} // frames is not nil
+	var ret = Frames{}
 	frames := runtime.CallersFrames(pcs[:n])
 	i := 0
 	for {
@@ -89,5 +89,5 @@ func Stack(skip, nFrames int) Frames {
 			break
 		}
 	}
-	return ret
+	return &ret
 }
