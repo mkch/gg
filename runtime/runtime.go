@@ -26,7 +26,7 @@ func Source() slog.Source {
 // Frames is call stack frames used by [Stack].
 type Frames struct {
 	Frames   []runtime.Frame
-	Complete bool // true if Frames is not complete due to nFrames of Stack.
+	Complete bool // true if Frames is not truncated due to nFrames of Stack.
 }
 
 // String returns the string representation of f.
