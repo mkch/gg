@@ -1,3 +1,3 @@
 module github.com/mkch/gg
 
-go 1.22
+go 1.24
