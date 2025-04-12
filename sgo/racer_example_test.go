@@ -25,7 +25,7 @@ func ping(ctx context.Context, url string) string {
 }
 
 func ExampleRace_ping() {
-	winner := sgo.Race[string](context.Background(), 0, nil,
+	winner := sgo.Race(context.Background(),
 		func(ctx context.Context) string { return ping(ctx, "https://goproxy.cn") },
 		func(ctx context.Context) string { return ping(ctx, "https://goproxy.io") })
 	if winner == "" {

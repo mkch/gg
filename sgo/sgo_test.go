@@ -88,7 +88,7 @@ func TestRacer(t *testing.T) {
 		return result{nil, sum}
 	})
 
-	r := racer.Proclaim()
+	r := racer.Collect()
 	if r.Err != nil || r.N != 5050 {
 		t.Fatal(r)
 	}
@@ -117,7 +117,7 @@ func TestEmptyCollect(t *testing.T) {
 }
 
 func TestEmptyRace(t *testing.T) {
-	result := NewRacer[int](context.Background()).Proclaim()
+	result := NewRacer[int](context.Background()).Collect()
 	if result != 0 {
 		t.Fatal(result)
 	}

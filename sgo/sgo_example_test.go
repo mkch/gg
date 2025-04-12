@@ -25,7 +25,7 @@ func ExampleGroup() {
 }
 
 func ExampleWait() {
-	sgo.Wait(0,
+	sgo.Wait(
 		func() { fmt.Println("task 1") },
 		func() { fmt.Println("task 2") })
 
@@ -79,9 +79,18 @@ func ExampleGroup_reuse() {
 }
 
 func ExampleCollector() {
+	sumSlice := func(s []int) (sum int) {
+		for _, n := range s {
+			sum += n
+		}
+		return
+	}
+
+	s := []int{1, 2, 3, 4}
+
 	result := sgo.NewCollector[int]().
-		Go(func() int { return 1 + 2 }).
-		Go(func() int { return 3 + 4 }).
+		Go(func() int { return sumSlice(s[:2]) }).
+		Go(func() int { return sumSlice(s[2:]) }).
 		Collect()
 
 	sum := result[0] + result[1]
@@ -90,9 +99,18 @@ func ExampleCollector() {
 }
 
 func ExampleCollect() {
-	result := sgo.Collect(0,
-		func() int { return 1 + 2 },
-		func() int { return 3 + 4 })
+	sumSlice := func(s []int) (sum int) {
+		for _, n := range s {
+			sum += n
+		}
+		return
+	}
+
+	s := []int{1, 2, 3, 4}
+
+	result := sgo.Collect(
+		func() int { return sumSlice(s[:2]) },
+		func() int { return sumSlice(s[2:]) })
 	sum := result[0] + result[1]
 	fmt.Println(sum)
 	// Output: 10
@@ -113,7 +131,7 @@ func ExampleRacer() {
 				return "2"
 			}
 		}).
-		Proclaim()
+		Collect()
 	fmt.Println(result)
 	// Output:
 	// 1
@@ -127,11 +145,11 @@ func ExampleRacer_cleanup() {
 
 	racer := sgo.NewRacer[Result](context.Background())
 	// There is a chance that more than one racer wins at the same time.
-	racer.Cleanup = func(r Result) {
+	racer.SetCleanup(func(r Result) {
 		if r.Response != nil {
 			r.Response.Body.Close()
 		}
-	}
+	})
 
 	for _, url := range []string{"https://go.dev/", "https://golang.org"} {
 		racer.Go(func(ctx context.Context) Result {
@@ -144,7 +162,7 @@ func ExampleRacer_cleanup() {
 		})
 	}
 
-	winner := racer.Proclaim()
+	winner := racer.Collect()
 	if winner.Response != nil {
 		defer winner.Response.Body.Close()
 		// read winner.Response.Body here
@@ -153,7 +171,7 @@ func ExampleRacer_cleanup() {
 }
 
 func ExampleRace() {
-	result := sgo.Race[string](context.Background(), 0, nil,
+	result := sgo.Race(context.Background(),
 		func(ctx context.Context) string {
 			return "1"
 		},
