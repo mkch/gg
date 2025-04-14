@@ -97,5 +97,4 @@ func TestChainError(t *testing.T) {
 	if !errors.Is(err, err2) {
 		t.Fatalf("should contain err2")
 	}
-	t.Log(err)
 }
