@@ -69,3 +69,33 @@ func TestMustOK(t *testing.T) {
 
 	gg.MustOK(greaterThanZero(-1))
 }
+
+func TestChainError(t *testing.T) {
+	var err error
+	var err1 = errors.New("err1")
+	var err2 = errors.New("err2")
+	gg.ChainError(func() error { return err1 }, &err)
+	if !errors.Is(err, err1) {
+		t.Fatalf("should contain err1")
+	}
+	if errors.Is(err, err2) {
+		t.Fatalf("should not contain err2")
+	}
+
+	gg.ChainError(func() error { return nil }, &err)
+	if !errors.Is(err, err1) {
+		t.Fatalf("should contain err1")
+	}
+	if errors.Is(err, err2) {
+		t.Fatalf("should not contain err2")
+	}
+
+	gg.ChainError(func() error { return err2 }, &err)
+	if !errors.Is(err, err1) {
+		t.Fatalf("should contain err1")
+	}
+	if !errors.Is(err, err2) {
+		t.Fatalf("should contain err2")
+	}
+	t.Log(err)
+}
