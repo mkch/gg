@@ -15,4 +15,8 @@ func Test_Set(t *testing.T) {
 	if !set.Contains(1) {
 		t.Fatalf("should contain 1")
 	}
+	set.Delete(1)
+	if set.Contains(1) {
+		t.Fatal("should not contain 1")
+	}
 }
