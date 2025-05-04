@@ -1,4 +1,4 @@
-package os_test
+package os2_test
 
 import (
 	"bytes"
@@ -6,7 +6,7 @@ import (
 
 	"os"
 
-	os2 "github.com/mkch/gg/os"
+	"github.com/mkch/gg/os2"
 )
 
 func TestCopyFil(t *testing.T) {

@@ -1,11 +1,11 @@
-package runtime_test
+package runtime2_test
 
 import (
 	"fmt"
 	"path"
 	"testing"
 
-	"github.com/mkch/gg/runtime"
+	"github.com/mkch/gg/runtime2"
 )
 
 func TestStack(t *testing.T) {
@@ -29,7 +29,7 @@ func f2(t *testing.T) {
 }
 
 func f1(t *testing.T) {
-	f := runtime.Stack(0, 0)
+	f := runtime2.Stack(0, 0)
 	if len(f.Frames) < 6 {
 		t.Fatal(f)
 	}

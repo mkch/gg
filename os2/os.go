@@ -1,4 +1,4 @@
-package os
+package os2
 
 import (
 	"io"
