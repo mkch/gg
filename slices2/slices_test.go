@@ -1,4 +1,4 @@
-package slices
+package slices2
 
 import (
 	"strconv"

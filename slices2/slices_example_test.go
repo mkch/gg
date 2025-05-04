@@ -1,16 +1,16 @@
-package slices_test
+package slices2_test
 
 import (
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/mkch/gg/slices"
+	"github.com/mkch/gg/slices2"
 )
 
 func ExampleFilter() {
 	isEven := func(n int) bool { return n%2 == 0 }
-	evens := slices.Filter([]int{1, 2, 3, 4, 5}, isEven)
+	evens := slices2.Filter([]int{1, 2, 3, 4, 5}, isEven)
 	fmt.Println(evens)
 	// Output:
 	// [2 4]
@@ -19,7 +19,7 @@ func ExampleFilter() {
 func ExampleMap() {
 	s1 := []int{1, 2, 3}
 	f := func(n int) string { return "number" + strconv.Itoa(n) }
-	s2 := slices.Map(s1, f)
+	s2 := slices2.Map(s1, f)
 	fmt.Println(s2)
 	// Output:
 	// [number1 number2 number3]
@@ -28,7 +28,7 @@ func ExampleMap() {
 func ExampleReduce() {
 	s := []int{1, 2, 3}
 	sumReducer := func(a, n, i int) int { return a + n }
-	sum := slices.Reduce(s, sumReducer, 0)
+	sum := slices2.Reduce(s, sumReducer, 0)
 	fmt.Println(sum)
 	// Output:
 	// 6
@@ -36,8 +36,8 @@ func ExampleReduce() {
 
 func Example_mapReduce() {
 	rawData := []string{"Alice:100", "Bob:90"}
-	sum := slices.Reduce(
-		slices.Map(rawData, func(s string) int {
+	sum := slices2.Reduce(
+		slices2.Map(rawData, func(s string) int {
 			n, _ := strconv.Atoi(s[strings.IndexRune(s, ':')+1:])
 			return n
 		}),
@@ -52,14 +52,14 @@ func Example_mapReduce() {
 
 func ExampleFill() {
 	s := make([]string, 3)
-	slices.Fill(s, "go!")
+	slices2.Fill(s, "go!")
 	fmt.Println(s)
 	// Output:
 	// [go! go! go!]
 }
 
 func ExampleRepeat() {
-	s := slices.Repeat("go!", 3)
+	s := slices2.Repeat("go!", 3)
 	fmt.Println(s)
 	// Output:
 	// [go! go! go!]

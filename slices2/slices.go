@@ -1,4 +1,4 @@
-package slices
+package slices2
 
 // Filter creates a new slice which contains values from source
 // that pass the keep function.
