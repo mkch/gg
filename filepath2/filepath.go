@@ -1,5 +1,5 @@
 // Package filepath implements utility routines for manipulating filename paths.
-package filepath
+package filepath2
 
 import (
 	"path/filepath"
