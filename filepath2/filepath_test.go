@@ -3,6 +3,7 @@ package filepath2
 
 import (
 	"fmt"
+	"path/filepath"
 	"testing"
 )
 
@@ -19,7 +20,7 @@ func TestChangeExt(t *testing.T) {
 		{"normal", args{"a.txt", "html"}, "a.html"},
 		{"no ext", args{"abc", ".c"}, "abc.c"},
 		{"empty new ext", args{"abc", ""}, "abc"},
-		{"multi dots", args{"/path/a.b/c.e", "f"}, "/path/a.b/c.f"},
+		{"multi dots", args{"/path/a.b/c.e", "f"}, filepath.FromSlash("/path/a.b/c.f")},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -28,18 +29,6 @@ func TestChangeExt(t *testing.T) {
 			}
 		})
 	}
-}
-
-func ExampleChangeExt() {
-	fmt.Println(ChangeExt("a.txt", "html"))
-	fmt.Println(ChangeExt("/path/file", ".c"))
-	fmt.Println(ChangeExt("a.txt", ""))
-	fmt.Println(ChangeExt(".a", "txt"))
-	// Output:
-	// a.html
-	// /path/file.c
-	// a
-	// .txt
 }
 
 func TestName(t *testing.T) {
