@@ -4,7 +4,7 @@ package gg
 import "errors"
 
 // If returns truePart if cond is true, or returns falsePart.
-// Be aware that BOTH truePart and falsePart are evaluated in If before returning.
+// Note that Go evaluates truePart and falsePart regardless of cond when calling If.
 func If[T any](cond bool, truePart T, falsePart T) T {
 	if cond {
 		return truePart
@@ -13,11 +13,7 @@ func If[T any](cond bool, truePart T, falsePart T) T {
 	}
 }
 
-// IfFunc returns the result of truePart if cond is true, or the result of falsePart.
-// Only one of truePart and falsePart is evaluated.
-// Something like ternary operator in C:
-//
-//	cond ? truePart() : falsePart()
+// IfFunc returns the result of truePart() if cond is true, or the result of falsePart().
 func IfFunc[T any](cond bool, truePart func() T, falsePart func() T) T {
 	if cond {
 		return truePart()
