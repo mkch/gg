@@ -20,6 +20,14 @@ func TestIf(t *testing.T) {
 	}
 }
 
+func ExampleIf() {
+	fmt.Println(gg.If(true, "yes", "no"))
+	fmt.Println(gg.If(false, 1, 0))
+	// Output:
+	// yes
+	// 0
+}
+
 func TestIfFunc(t *testing.T) {
 	var (
 		truePartExec, falsePareExec bool
@@ -41,6 +49,20 @@ func TestIfFunc(t *testing.T) {
 	} else if falsePareExec {
 		t.Fatal("false pare should not be executed")
 	}
+}
+
+func ExampleIfFunc() {
+	fmt.Println(gg.IfFunc(true,
+		func() string { return "true" },
+		func() string { return "false" },
+	))
+	fmt.Println(gg.IfFunc(false,
+		func() int { return 1 },
+		func() int { return 2 },
+	))
+	// Output:
+	// true
+	// 2
 }
 
 func ExampleMust() {

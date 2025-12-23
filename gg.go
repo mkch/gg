@@ -4,9 +4,7 @@ package gg
 import "errors"
 
 // If returns truePart if cond is true, or returns falsePart.
-// Something like ternary operator in C:
-//
-//	cond ? truePart : falsePart
+// Be aware that BOTH truePart and falsePart are evaluated in If before returning.
 func If[T any](cond bool, truePart T, falsePart T) T {
 	if cond {
 		return truePart
@@ -15,10 +13,8 @@ func If[T any](cond bool, truePart T, falsePart T) T {
 	}
 }
 
-// IfFunc calls truePart() and returns it's return value if cond is true,
-// or calls falsePart() and returns it's return value.
-// If cond is true, falsePart will not be executed.
-// if cond if false, truePart will not be executed.
+// IfFunc returns the result of truePart if cond is true, or the result of falsePart.
+// Only one of truePart and falsePart is evaluated.
 // Something like ternary operator in C:
 //
 //	cond ? truePart() : falsePart()
