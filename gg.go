@@ -1,7 +1,7 @@
 // Package gg is a set of useful golang utilities.
 package gg
 
-import "fmt"
+import "errors"
 
 // If returns truePart if cond is true, or returns falsePart.
 // Something like ternary operator in C:
@@ -47,17 +47,18 @@ func MustOK(err error) {
 	}
 }
 
-// ChainError first executes f, and returns if it returns nil.
-// When f's return value is not nil (counted as err), if *dest is nil, sets *dest to err,
-// otherwise wraps *dest and err into one error and assigns it to *dest.
-// ChainError can be used after the defer keyword, for closing [io.Closer] while preserving the error returned by [io.Closer.Close].
+// ChainError executes f and, if it returns a non-nil error, merges it into dest using errors.Join.
+// It is intended for use with defer so cleanup errors are combined with the function's return error.
+// If the return value of f is nil nothing changes; if *dest is nil it becomes the return value of f;
+// otherwise *dest is set to errors.Join(*dest, return_of_f).
+// Argument dest should point to the function's named return error.
 func ChainError(f func() error, dest *error) {
-	ferr := f()
-	if ferr == nil {
+	err := f()
+	if err == nil {
 		return
 	}
 	*dest = IfFunc(*dest == nil,
-		func() error { return ferr },
-		func() error { return fmt.Errorf("%w; %w", *dest, ferr) },
+		func() error { return err },
+		func() error { return errors.Join(*dest, err) },
 	)
 }

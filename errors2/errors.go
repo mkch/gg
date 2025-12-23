@@ -138,31 +138,6 @@ func fprintErrorIndent(w io.Writer, e error) (n int, err error) {
 	return
 }
 
-// fprintStack prints the stack frames of e to w with indentation.
-func (e *errorWithStack) fprintStack(w io.Writer, indent string, indentLevel int) (n int, err error) {
-	indentStr := strings.Repeat(indent, indentLevel)
-	if len(e.frames) == 0 {
-		return
-	}
-	var nn int
-	frames := e.StackFrames()
-	// Do not print "===== STACK TRACE =====" if only one frame and marked complete(may be captured by WithFileLine).
-	var needPrintMarker = len(frames.Frames) > 1 || !frames.Complete
-	nn, err = io.WriteString(w, "\n"+indentStr+gg.If(needPrintMarker, "===== STACK TRACE =====\n", ""))
-	n += nn
-	if err != nil {
-		return
-	}
-	nn, err = frames.FprintIndent(w, indent, indentLevel)
-	n += nn
-	if err != nil {
-		return
-	}
-	nn, err = io.WriteString(w, indentStr+gg.If(needPrintMarker, "=======================\n", "\n"))
-	n += nn
-	return
-}
-
 // Format implements [ErrorWithStack.Format].
 func (e *errorWithStack) Format(f fmt.State, verb rune) {
 	if verb == 'v' && f.Flag('+') {
