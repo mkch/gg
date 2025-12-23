@@ -31,33 +31,42 @@ func writeFile(f io.WriteCloser, data string) error {
 func ExampleWithStack() {
 	err := writeFile(nil, "hello, world")
 	if err != nil {
+		err = errors2.WithFileLine(err)
 		fmt.Printf("%+v", err)
 	}
-	/* Will output something like:
+	/* Output something like:
 
 	can't write file: open no_such_file: no such file or directory
 
-	===== STACK TRACE =====
-	github.com/mkch/gg/errors2_test.writeFile()
-		path/errors_example_test.go:22
 	github.com/mkch/gg/errors2_test.ExampleWithStack()
-		path/errors_example_test.go:32
-	testing.runExample()
-		...
-	=======================
+		path/errors_example_test.go:34
 
 		Caused by:
-		open no_such_file: no such file or directory
+		can't write file: open no_such_file: no such file or directory
 
 		===== STACK TRACE =====
-		github.com/mkch/gg/errors2_test.openFile()
-			path/errors_example_test.go:14
 		github.com/mkch/gg/errors2_test.writeFile()
-			path/errors_example_test.go:20
+			path/errors_example_test.go:22
 		github.com/mkch/gg/errors2_test.ExampleWithStack()
 			path/errors_example_test.go:32
 		testing.runExample()
-			...
+			path/go/src/testing/run_example.go:63
+		...
 		=======================
+
+			Caused by:
+			open no_such_file: no such file or directory
+
+			===== STACK TRACE =====
+			github.com/mkch/gg/errors2_test.openFile()
+				path/errors_example_test.go:14
+			github.com/mkch/gg/errors2_test.writeFile()
+				path/errors_example_test.go:20
+			github.com/mkch/gg/errors2_test.ExampleWithStack()
+				path/errors_example_test.go:32
+			testing.runExample()
+				path/go/src/testing/run_example.go:63
+			...
+			=======================
 	*/
 }

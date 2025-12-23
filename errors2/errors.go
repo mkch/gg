@@ -6,6 +6,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/mkch/gg"
 	"github.com/mkch/gg/runtime2"
 )
 
@@ -116,7 +117,9 @@ func (e *ErrorWithStack) fprintStack(w io.Writer, indent string, indentLevel int
 	}
 	var nn int
 	frames := e.StackFrames()
-	nn, err = io.WriteString(w, "\n"+indentStr+"===== STACK TRACE =====\n")
+	// Do not print "===== STACK TRACE =====" if only one frame and marked complete(may be captured by WithFileLine).
+	var needPrintMarker = len(frames.Frames) > 1 || !frames.Complete
+	nn, err = io.WriteString(w, "\n"+indentStr+gg.If(needPrintMarker, "===== STACK TRACE =====\n", ""))
 	n += nn
 	if err != nil {
 		return
@@ -126,7 +129,7 @@ func (e *ErrorWithStack) fprintStack(w io.Writer, indent string, indentLevel int
 	if err != nil {
 		return
 	}
-	nn, err = io.WriteString(w, indentStr+"=======================\n")
+	nn, err = io.WriteString(w, indentStr+gg.If(needPrintMarker, "=======================\n", "\n"))
 	n += nn
 	return
 }
@@ -151,8 +154,9 @@ func (e *ErrorWithStack) Format(f fmt.State, verb rune) {
 // frame of the caller of WithStackFrames.
 // The number of stack frames captured is limited to nFrames.
 // If nFrames is less than or equal to zero, a reasonable default value is used.
+// If complete is true the stack frames capture is considered complete.
 // If err is nil, nil is returned.
-func WithStackFrames(err error, skip, nFrames int) *ErrorWithStack {
+func WithStackFrames(err error, skip, nFrames int, complete bool) *ErrorWithStack {
 	if err == nil {
 		return nil
 	}
@@ -163,7 +167,7 @@ func WithStackFrames(err error, skip, nFrames int) *ErrorWithStack {
 	return &ErrorWithStack{
 		error:      err,
 		frames:     pcs,
-		moreFrames: more,
+		moreFrames: more && !complete,
 	}
 }
 
@@ -171,11 +175,19 @@ const maxStackDepth = 32
 
 // WithStack returns an ErrorWithStack that wraps err and contains stack frames start
 // from the caller of WithStack.
-// The number of stack frames captured has a reasonable limit.
+// The number of stack frames captured has a reasonable limit. If more stack frames exist,
+// a marker message is included in the stack trace.
 // If the maximum number of stack frames is in consideration, use [WithStackFrames] instead.
 // If err is nil, nil is returned.
 func WithStack(err error) *ErrorWithStack {
-	return WithStackFrames(err, 1, maxStackDepth) // Skip [WithStack].
+	return WithStackFrames(err, 1, maxStackDepth, false) // Skip [WithStack].
+}
+
+// WithFileLine returns an ErrorWithStack that wraps err and contains only
+// the stack frame of the caller of WithFileLine.
+// If err is nil, nil is returned.
+func WithFileLine(err error) *ErrorWithStack {
+	return WithStackFrames(err, 1, 1, true) // Skip [WithFileLine], capture only one frame, complete.
 }
 
 // Errorf is like [fmt.Errorf] but returns an ErrorWithStack that contains stack frames start
@@ -183,5 +195,5 @@ func WithStack(err error) *ErrorWithStack {
 // Errorf acts as wrapping the return value of fmt.Errorf(format, args...) with [WithStack].
 func Errorf(format string, args ...any) *ErrorWithStack {
 	err := fmt.Errorf(format, args...)
-	return WithStackFrames(err, 1, maxStackDepth) // Skip [Errorf].
+	return WithStackFrames(err, 1, maxStackDepth, false) // Skip [Errorf].
 }
