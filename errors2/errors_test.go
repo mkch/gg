@@ -31,7 +31,7 @@ func f2(t *testing.T) {
 }
 
 func f1(t *testing.T) {
-	err1 := Errorf("Error caused by %w and %w", errors.New("first cause"), errors.New("second cause"))
+	err1 := ErrorfStack("Error caused by %w and %w", errors.New("first cause"), errors.New("second cause"))
 
 	f := err1.StackFrames()
 	if len(f.Frames) < 6 {

@@ -19,7 +19,7 @@ func openFile(name string) (io.WriteCloser, error) {
 func writeFile(f io.WriteCloser, data string) error {
 	w, err := openFile("no_such_file")
 	if err != nil {
-		return errors2.Errorf("can't write file: %w", err)
+		return errors2.ErrorfStack("can't write file: %w", err)
 	}
 	_, err = io.WriteString(w, data)
 	if err != nil {
