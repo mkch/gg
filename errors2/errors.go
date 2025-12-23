@@ -26,60 +26,83 @@ func (e *ErrorWithStack) StackFrames() *runtime2.Frames {
 	return runtime2.StackFromPC(e.frames, e.moreFrames)
 }
 
-// fprintErrorChainIndent prints the entire error chain to w with indentation.
-// If indent is empty, a tab character("\t") is used as the indent string.
-// Each level of the error chain is indented by an additional indent level.
-// *ErrorWithStack in the chain will be printed with [ErrorWithStack.FprintIndent].
-func fprintErrorChainIndent(w io.Writer, indent string, indentLevel int, e error) (n int, err error) {
-	if e == nil {
-		return io.WriteString(w, "<nil>\n")
-	}
-	if indent == "" {
-		indent = "\t"
-	}
-	indentStr := strings.Repeat(indent, indentLevel)
+// fprintErrorIndentImpl prints all ErrorWithStacks in the entire error chain to w.
+// It is a helper function for fprintErrorIndent.
+// Each level of ErrorWithStack is indented by an additional indent level.
+// If lookForCause is true, it prints "Caused by:" before printing the error message.
+// It returns whether any ErrorWithStack is printed, the number of bytes written, and any error encountered.
+func fprintErrorIndentImpl(w io.Writer, indent string, indentLevel int, e error, lookForCause bool) (printed bool, n int, err error) {
 	var nn int
-	// Print the error message.
-	if nn, err = fmt.Fprintf(w, "%s%T: %s\n", indentStr, e, e.Error()); err != nil {
-		return nn, err
-	}
-	// Print stack if available.
+	var pp bool
+	// Print ErrorWithStack if available.
 	if errStack, ok := e.(*ErrorWithStack); ok {
-		nn, err = errStack.fprintStack(w, indent, indentLevel)
+		indentStr := strings.Repeat(indent, indentLevel)
+		// Print "Caused by:" if needed.
+		if lookForCause {
+			nn, err = fmt.Fprintln(w, "\n"+indentStr+"Caused by:")
+			n += nn
+			if err != nil {
+				return
+			}
+		}
+		// Print error message.
+		nn, err = fmt.Fprintln(w, indentStr+e.Error())
+		printed = true
+		n += nn
 		if err != nil {
 			return
 		}
+		// Print stack.
+		nn, err = errStack.fprintStack(w, indent, indentLevel)
+		n += nn
+		if err != nil {
+			return
+		}
+		// Look for causes.
+		pp, nn, err = fprintErrorIndentImpl(w, indent, indentLevel+1, errStack.error, true)
+		printed = printed || pp
+		n += nn
+		return
 	}
-	causedBy := "\n" + indentStr + "Caused by:\n"
+
 	// Unwrap cause.
 	if uw, ok := e.(interface{ Unwrap() error }); ok {
 		if cause := uw.Unwrap(); cause != nil {
-			nn, err = io.WriteString(w, causedBy)
+			pp, nn, err = fprintErrorIndentImpl(w, indent, indentLevel, cause, lookForCause)
+			printed = printed || pp
 			n += nn
-			if err != nil {
-				return
-			}
-			nn, err = fprintErrorChainIndent(w, indent, indentLevel+1, cause)
-			n += nn
-			if err != nil {
-				return
-			}
 		}
 		return
 	}
 	// Unwrap causes.
 	if uw, ok := e.(interface{ Unwrap() []error }); ok {
-		nn, err = io.WriteString(w, causedBy)
-		n += nn
-		if err != nil {
-			return
-		}
 		for _, cause := range uw.Unwrap() {
-			nn, err = fprintErrorChainIndent(w, indent, indentLevel+1, cause)
+			pp, nn, err = fprintErrorIndentImpl(w, indent, indentLevel, cause, lookForCause)
+			printed = printed || pp
 			n += nn
 			if err != nil {
 				return
 			}
+		}
+	}
+	return
+}
+
+// fprintErrorIndent prints all ErrorWithStack instances in the entire error chain to w with tab("\t") indentation.
+// If no ErrorWithStack is found in the chain, it prints the error message only.
+func fprintErrorIndent(w io.Writer, e error) (n int, err error) {
+	const indent = "\t"
+	printed, nn, err := fprintErrorIndentImpl(w, indent, 0, e, false)
+	n += nn
+	if err != nil {
+		return
+	}
+	if !printed {
+		// No ErrorWithStack found in the chain, print the error message only.
+		nn, err = fmt.Fprintln(w, e)
+		n += nn
+		if err != nil {
+			return
 		}
 	}
 	return
@@ -108,18 +131,18 @@ func (e *ErrorWithStack) fprintStack(w io.Writer, indent string, indentLevel int
 	return
 }
 
-// Format implements [fmt.Formatter] interface.
-// When the verb is 'v' and the '+' flag is specified, it prints the error message
-// and the string representation of stack frames to f.
+// Format implements [fmt.Formatter].
+// With verb 'v' and the '+' flag, it prints all ErrorWithStack
+// instances in the error chain, each with its message and stack trace.
 // Otherwise, it falls back to the default formatting.
 // See the example of [WithStack].
 func (e *ErrorWithStack) Format(f fmt.State, verb rune) {
 	if verb == 'v' && f.Flag('+') {
-		fprintErrorChainIndent(f, "\t", 0, e)
+		fprintErrorIndent(f, e)
 		return
 	}
 	// Fallback to default formatting.
-	fmt.Fprintf(f, fmt.FormatString(f, verb), e)
+	fmt.Fprintf(f, fmt.FormatString(f, verb), e.error)
 }
 
 // WithStackFrames returns an ErrorWithStack that wraps err and contains stack frames

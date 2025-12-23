@@ -44,7 +44,7 @@ func f1(t *testing.T) {
 		}
 	}
 
-	const expected = `*errors2.ErrorWithStack: Error caused by first cause and second cause
+	const expected = `Error caused by first cause and second cause
 
 ===== STACK TRACE =====
 github.com/mkch/gg/errors2.f1()
@@ -60,13 +60,6 @@ github.com/mkch/gg/errors2.f5()
 github.com/mkch/gg/errors2.Test_Errorf()
 	<this_file>:14
 =======================
-
-Caused by:
-	*fmt.wrapErrors: Error caused by first cause and second cause
-
-	Caused by:
-		*errors.errorString: first cause
-		*errors.errorString: second cause
 `
 
 	output := fmt.Sprintf("%+v", err1)
