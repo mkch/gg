@@ -39,12 +39,12 @@ func MustOK(err error) {
 	}
 }
 
-// ChainError executes f and, if it returns a non-nil error, merges it into dest using errors.Join.
-// It is intended for use with defer so cleanup errors are combined with the function's return error.
-// If the return value of f is nil nothing changes; if *dest is nil it becomes the return value of f;
-// otherwise *dest is set to errors.Join(*dest, return_of_f).
-// Argument dest should point to the function's named return error.
-func ChainError(f func() error, dest *error) {
+// CollectError executes f and collects its error into *dest.
+// It is intended for use with defer so cleanup errors are not lost.
+// If f returns an error and *dest is nil, store it in *dest;
+// otherwise join it with *dest using [errors.Join].
+// Argument dest can't be nil, and it usually points to the function's named return error.
+func CollectError(f func() error, dest *error) {
 	err := f()
 	if err == nil {
 		return

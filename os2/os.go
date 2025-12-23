@@ -14,7 +14,7 @@ func CopyFile(src, dest string, overwrite bool) (err error) {
 	if err != nil {
 		return
 	}
-	defer gg.ChainError(r.Close, &err)
+	defer gg.CollectError(r.Close, &err)
 	srcInfo, err := r.Stat()
 	if err != nil {
 		return
@@ -25,7 +25,7 @@ func CopyFile(src, dest string, overwrite bool) (err error) {
 	if err != nil {
 		return
 	}
-	defer gg.ChainError(w.Close, &err)
+	defer gg.CollectError(w.Close, &err)
 	_, err = io.Copy(w, r)
 	return
 }

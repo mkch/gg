@@ -35,14 +35,14 @@ func FileOp() (err error) {
 	if err != nil {
 		return err
 	}
-	// Ensure f is closed and any close error is combined with the return error err.
-	defer gg.ChainError(f.Close, &err)
+	// Ensure f is closed and any close error is combined with err.
+	defer gg.CollectError(f.Close, &err)
 
 	_, err = f.Write([]byte("x"))
 	return err
 }
 
-func ExampleChainError() {
+func ExampleCollectError() {
 	err := FileOp()
 	// err contains both write and close errors.
 	fmt.Println(err)
