@@ -12,24 +12,36 @@ import (
 )
 
 // Error is an error containing stack frames.
-type Error struct {
+type Error interface {
+	error
+	// Unwrap returns the underlying error.
+	Unwrap() error
+	// StackFrames returns the stack frames captured when the error was created.
+	StackFrames() *runtime2.Frames
+	// Format implements [fmt.Formatter].
+	// With verb 'v' and the '+' flag, it prints all Error
+	// instances in the error chain, each with its message and stack trace.
+	// Otherwise, it falls back to the default formatting.
+	// See the example of [WithStack].
+	Format(f fmt.State, verb rune)
+}
+
+// errorWithStack implements [Error].
+type errorWithStack struct {
 	error
 	frames     []uintptr
 	moreFrames bool
 }
 
-// Error implements error interface.
-func (e *Error) Error() string {
+func (e *errorWithStack) Error() string {
 	return e.error.Error()
 }
 
-// Unwrap returns the underlying error.
-func (e *Error) Unwrap() error {
+func (e *errorWithStack) Unwrap() error {
 	return e.error
 }
 
-// StackFrames returns the stack frames captured when the error was created.
-func (e *Error) StackFrames() *runtime2.Frames {
+func (e *errorWithStack) StackFrames() *runtime2.Frames {
 	return runtime2.StackFromPC(e.frames, e.moreFrames)
 }
 
@@ -42,7 +54,7 @@ func fprintErrorIndentImpl(w io.Writer, indent string, indentLevel int, e error,
 	var nn int
 	var pp bool
 	// Print Error if available
-	if errStack, ok := e.(*Error); ok {
+	if errStack, ok := e.(Error); ok {
 		indentStr := strings.Repeat(indent, indentLevel)
 		// Print "Caused by:" if needed.
 		if lookForCause {
@@ -145,6 +157,12 @@ func Print(e error) (n int, err error) {
 	return Fprint(os.Stderr, e)
 }
 
+// Panic calls [Fprint]([os.Stderr], e) and then panics with e.
+func Panic(e error) {
+	Fprint(os.Stderr, e)
+	panic(e)
+}
+
 // Sprint returns the string representation of the output of [Fprint].
 func Sprint(e error) string {
 	var sb strings.Builder
@@ -152,12 +170,7 @@ func Sprint(e error) string {
 	return sb.String()
 }
 
-// Format implements [fmt.Formatter].
-// With verb 'v' and the '+' flag, it prints all Error
-// instances in the error chain, each with its message and stack trace.
-// Otherwise, it falls back to the default formatting.
-// See the example of [WithStack].
-func (e *Error) Format(f fmt.State, verb rune) {
+func (e *errorWithStack) Format(f fmt.State, verb rune) {
 	if verb == 'v' && f.Flag('+') {
 		fprintErrorIndent(f, e)
 		return
@@ -175,7 +188,7 @@ func (e *Error) Format(f fmt.State, verb rune) {
 // If forceComplete is true the stack frames capture is considered complete even
 // if more than nFrames stack frames exist.
 // If err is nil, nil is returned.
-func WithStackFrames(err error, skip, nFrames int, forceComplete bool) *Error {
+func WithStackFrames(err error, skip, nFrames int, forceComplete bool) Error {
 	if err == nil {
 		return nil
 	}
@@ -183,7 +196,7 @@ func WithStackFrames(err error, skip, nFrames int, forceComplete bool) *Error {
 		nFrames = maxStackDepth
 	}
 	pcs, more := runtime2.Callers(skip+1, nFrames) // skip [withStackN].
-	return &Error{
+	return &errorWithStack{
 		error:      err,
 		frames:     pcs,
 		moreFrames: more && !forceComplete,
@@ -198,21 +211,21 @@ const maxStackDepth = 32
 // a marker message is included in the stack trace.
 // If the maximum number of stack frames is in consideration, use [WithStackFrames] instead.
 // If err is nil, nil is returned.
-func WithStack(err error) *Error {
+func WithStack(err error) Error {
 	return WithStackFrames(err, 1, maxStackDepth, false) // Skip [WithStack].
 }
 
 // WithFileLine returns an Error that wraps err and contains
 // the stack frame of the caller of WithFileLine.
 // If err is nil, nil is returned. See example of [WithStack].
-func WithFileLine(err error) *Error {
+func WithFileLine(err error) Error {
 	return WithStackFrames(err, 1, 1, true) // Skip [WithFileLine], capture only one frame, complete.
 }
 
 // ErrorfStack is like [fmt.Errorf] but returns an Error that contains stack frames start
 // from the caller of ErrorfStack.
-// ErrorfStack acts as wrapping the return value of fmt.ErrorfStack(format, args...) with [WithStack].
-func ErrorfStack(format string, args ...any) *Error {
+// ErrorfStack acts as wrapping the return value of fmt.Errorf(format, args...) with [WithStack].
+func ErrorfStack(format string, args ...any) Error {
 	err := fmt.Errorf(format, args...)
 	return WithStackFrames(err, 1, maxStackDepth, false) // Skip [ErrorfStack].
 }
@@ -220,7 +233,7 @@ func ErrorfStack(format string, args ...any) *Error {
 // ErrorfFileLine is like [fmt.Errorf] but returns an Error that contains
 // the stack frame of the caller of ErrorfFileLine.
 // ErrorfFileLine acts as wrapping the return value of fmt.Errorf(format, args...) with [WithFileLine].
-func ErrorfFileLine(format string, args ...any) *Error {
+func ErrorfFileLine(format string, args ...any) Error {
 	err := fmt.Errorf(format, args...)
 	return WithStackFrames(err, 1, 1, true) // Skip [ErrorfFileLine], capture only one frame, complete.
 }
