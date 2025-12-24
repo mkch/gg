@@ -4,6 +4,7 @@ package errortrace
 import (
 	"fmt"
 	"io"
+	"os"
 	"strings"
 
 	"github.com/mkch/gg"
@@ -108,7 +109,8 @@ func fprintErrorIndentImpl(w io.Writer, indent string, indentLevel int, e error,
 	return
 }
 
-// fprintErrorIndent prints all Error instances in the entire error chain to w with tab("\t") indentation.
+// fprintErrorIndent prints all [Error] instances in the entire
+// error chain to w with tab("\t") indentation.
 // If no Error is found in the chain, it prints the error message only.
 func fprintErrorIndent(w io.Writer, e error) (n int, err error) {
 	const indent = "\t"
@@ -126,6 +128,28 @@ func fprintErrorIndent(w io.Writer, e error) (n int, err error) {
 		}
 	}
 	return
+}
+
+// Fprint prints all [Error] instances in the entire error chain rooted
+// at e to w.
+// If no [Error] is found in the chain, it prints the error message only.
+// This function is intended to be used for printing [Error] instances in
+// a wrapper.
+// See example of [WithStack].
+func Fprint(w io.Writer, e error) (n int, err error) {
+	return fprintErrorIndent(w, e)
+}
+
+// Print calls [Fprint]([os.Stderr], e).
+func Print(e error) (n int, err error) {
+	return Fprint(os.Stderr, e)
+}
+
+// Sprint returns the string representation of the output of [Fprint].
+func Sprint(e error) string {
+	var sb strings.Builder
+	Fprint(&sb, e) // string.Builder.Write never returns error.
+	return sb.String()
 }
 
 // Format implements [fmt.Formatter].

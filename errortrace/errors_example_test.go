@@ -11,6 +11,7 @@ import (
 func openFile(name string) (io.WriteCloser, error) {
 	f, err := os.OpenFile(name, os.O_WRONLY, 0222)
 	if err != nil {
+		// Add stack trace.
 		return nil, errortrace.WithStack(err)
 	}
 	return f, err
@@ -19,6 +20,7 @@ func openFile(name string) (io.WriteCloser, error) {
 func genFile(data string) error {
 	w, err := openFile("no_such_file")
 	if err != nil {
+		// Prepend context and add stack trace.
 		return errortrace.ErrorfStack("can't write file: %w", err)
 	}
 	_, err = io.WriteString(w, data)
@@ -32,41 +34,43 @@ func ExampleWithStack() {
 	err := genFile("hello, world")
 	if err != nil {
 		err = errortrace.WithFileLine(err)
-		fmt.Printf("%+v", err)
+		// Wrapped Error can still be printed by errortrace.Fprint.
+		err = fmt.Errorf("%w", err)
+		errortrace.Fprint(os.Stdout, err)
 	}
 	/* Output something like:
 
-	   can't write file: open no_such_file: no such file or directory
+	can't write file: open no_such_file: no such file or directory
 
-	   github.com/mkch/gg/errortrace_test.ExampleWithStack()
-	       path/errors_example_test.go:34
+	github.com/mkch/gg/errortrace_test.ExampleWithStack()
+	    path/errors_example_test.go:36
 
-	       Caused by:
-	       can't write file: open no_such_file: no such file or directory
+	    Caused by:
+	    can't write file: open no_such_file: no such file or directory
 
-	       ===== STACK TRACE =====
-	       github.com/mkch/gg/errortrace_test.writeFile()
-	           path/errors_example_test.go:22
-	       github.com/mkch/gg/errortrace_test.ExampleWithStack()
-	           path/errors_example_test.go:32
-	       testing.runExample()
-	           path/go/src/testing/run_example.go:63
-	       ...
-	       =======================
+	    ===== STACK TRACE =====
+	    github.com/mkch/gg/errortrace_test.writeFile()
+	        path/errors_example_test.go:24
+	    github.com/mkch/gg/errortrace_test.ExampleWithStack()
+	        path/errors_example_test.go:34
+	    testing.runExample()
+	        path/go/src/testing/run_example.go:63
+	    ...
+	    =======================
 
-	           Caused by:
-	           open no_such_file: no such file or directory
+	        Caused by:
+	        open no_such_file: no such file or directory
 
-	           ===== STACK TRACE =====
-	           github.com/mkch/gg/errortrace_test.openFile()
-	               path/errors_example_test.go:14
-	           github.com/mkch/gg/errortrace_test.writeFile()
-	               path/errors_example_test.go:20
-	           github.com/mkch/gg/errortrace_test.ExampleWithStack()
-	               path/errors_example_test.go:32
-	           testing.runExample()
-	               path/go/src/testing/run_example.go:63
-	           ...
-	           =======================
+	        ===== STACK TRACE =====
+	        github.com/mkch/gg/errortrace_test.openFile()
+	            path/errors_example_test.go:15
+	        github.com/mkch/gg/errortrace_test.writeFile()
+	            path/errors_example_test.go:21
+	        github.com/mkch/gg/errortrace_test.ExampleWithStack()
+	            path/errors_example_test.go:34
+	        testing.runExample()
+	            path/go/src/testing/run_example.go:63
+	        ...
+	        =======================
 	*/
 }

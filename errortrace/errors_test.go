@@ -61,26 +61,31 @@ github.com/mkch/gg/errortrace.Test_Errorf()
 	<this_file>:14
 =======================
 `
-
-	output := fmt.Sprintf("%+v", err1)
 	// Replace file path with <this_file> for testing.
 	thisFile := runtime2.Source().File // Full path of this file.
 	re := regexp.MustCompile(`(\t*.+?\(\)\n\t*)(.+)\:(\d+\n)`)
-	output = re.ReplaceAllStringFunc(output, func(str string) string {
-		m := re.FindStringSubmatch(str)
-		// Remove all
-		//
-		// pkg.f()
-		// 	path_to_file:line
-		//
-		// which path_to_file is not this file.
-		if m[2] != thisFile {
-			return ""
-		}
-		// Replace all occurrences of this file path with <this_file>.
-		return fmt.Sprintf("%s<this_file>:%s", m[1], m[3])
-	})
-	if output != expected {
+	var filterOutput = func(s string) string {
+		return re.ReplaceAllStringFunc(s, func(str string) string {
+			m := re.FindStringSubmatch(str)
+			// Remove all
+			//
+			// pkg.f()
+			// 	path_to_file:line
+			//
+			// which path_to_file is not this file.
+			if m[2] != thisFile {
+				return ""
+			}
+			// Replace all occurrences of this file path with <this_file>.
+			return fmt.Sprintf("%s<this_file>:%s", m[1], m[3])
+		})
+	}
+
+	if output := filterOutput(fmt.Sprintf("%+v", err1)); output != expected {
+		t.Fatalf("output did not match expected:\n%s", output)
+	}
+	err2 := fmt.Errorf("%w", err1) // Wrap err1 to test Sprint.
+	if output := filterOutput(Sprint(err2)); output != expected {
 		t.Fatalf("output did not match expected:\n%s", output)
 	}
 }
