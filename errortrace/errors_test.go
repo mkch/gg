@@ -61,10 +61,10 @@ github.com/mkch/gg/errortrace.Test_Errorf()
 	<this_file>:14
 =======================
 `
-	// Replace file path with <this_file> for testing.
 	thisFile := runtime2.Source().File // Full path of this file.
 	re := regexp.MustCompile(`(\t*.+?\(\)\n\t*)(.+)\:(\d+\n)`)
-	var filterOutput = func(s string) string {
+	// Replace file path in s with <this_file> to form a stable output.
+	var replaceFilePath = func(s string) string {
 		return re.ReplaceAllStringFunc(s, func(str string) string {
 			m := re.FindStringSubmatch(str)
 			// Remove all
@@ -73,6 +73,7 @@ github.com/mkch/gg/errortrace.Test_Errorf()
 			// 	path_to_file:line
 			//
 			// which path_to_file is not this file.
+			// They are frames from test package and Go runtime.
 			if m[2] != thisFile {
 				return ""
 			}
@@ -81,11 +82,11 @@ github.com/mkch/gg/errortrace.Test_Errorf()
 		})
 	}
 
-	if output := filterOutput(fmt.Sprintf("%+v", err1)); output != expected {
+	if output := replaceFilePath(fmt.Sprintf("%+v", err1)); output != expected {
 		t.Fatalf("output did not match expected:\n%s", output)
 	}
 	err2 := fmt.Errorf("%w", err1) // Wrap err1 to test Sprint.
-	if output := filterOutput(Sprint(err2)); output != expected {
+	if output := replaceFilePath(Sprint(err2)); output != expected {
 		t.Fatalf("output did not match expected:\n%s", output)
 	}
 }
