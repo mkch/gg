@@ -1,4 +1,4 @@
-package errors2
+package errortrace
 
 import (
 	"errors"
@@ -47,17 +47,17 @@ func f1(t *testing.T) {
 	const expected = `Error caused by first cause and second cause
 
 ===== STACK TRACE =====
-github.com/mkch/gg/errors2.f1()
+github.com/mkch/gg/errortrace.f1()
 	<this_file>:34
-github.com/mkch/gg/errors2.f2()
+github.com/mkch/gg/errortrace.f2()
 	<this_file>:30
-github.com/mkch/gg/errors2.f3()
+github.com/mkch/gg/errortrace.f3()
 	<this_file>:26
-github.com/mkch/gg/errors2.f4()
+github.com/mkch/gg/errortrace.f4()
 	<this_file>:22
-github.com/mkch/gg/errors2.f5()
+github.com/mkch/gg/errortrace.f5()
 	<this_file>:18
-github.com/mkch/gg/errors2.Test_Errorf()
+github.com/mkch/gg/errortrace.Test_Errorf()
 	<this_file>:14
 =======================
 `
@@ -83,5 +83,4 @@ github.com/mkch/gg/errors2.Test_Errorf()
 	if output != expected {
 		t.Fatalf("output did not match expected:\n%s", output)
 	}
-
 }
