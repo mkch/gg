@@ -157,10 +157,9 @@ func Print(e error) (n int, err error) {
 	return Fprint(os.Stderr, e)
 }
 
-// Panic calls [Fprint]([os.Stderr], e) and then panics with e.
+// Panic calls panic([Sprint](e))
 func Panic(e error) {
-	Fprint(os.Stderr, e)
-	panic(e)
+	panic(Sprint(e))
 }
 
 // Sprint returns the string representation of the output of [Fprint].
