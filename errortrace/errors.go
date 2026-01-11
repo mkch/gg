@@ -186,10 +186,10 @@ func (e *errorWithStack) Format(f fmt.State, verb rune) {
 // If nFrames is less than or equal to zero, a reasonable default value is used.
 // If forceComplete is true the stack frames capture is considered complete even
 // if more than nFrames stack frames exist.
-// If err is nil, nil is returned.
+// If err is nil, it panics.
 func WithStackFrames(err error, skip, nFrames int, forceComplete bool) Error {
 	if err == nil {
-		return nil
+		panic("nil error")
 	}
 	if nFrames <= 0 {
 		nFrames = maxStackDepth
@@ -209,14 +209,14 @@ const maxStackDepth = 32
 // The number of stack frames captured has a reasonable limit. If more stack frames exist,
 // a marker message is included in the stack trace.
 // If the maximum number of stack frames is in consideration, use [WithStackFrames] instead.
-// If err is nil, nil is returned.
+// If err is nil, it panics.
 func WithStack(err error) Error {
 	return WithStackFrames(err, 1, maxStackDepth, false) // Skip [WithStack].
 }
 
 // WithFileLine returns an Error that wraps err and contains
 // the stack frame of the caller of WithFileLine.
-// If err is nil, nil is returned. See example of [WithStack].
+// If err is nil, it panics. See example of [WithStack].
 func WithFileLine(err error) Error {
 	return WithStackFrames(err, 1, 1, true) // Skip [WithFileLine], capture only one frame, complete.
 }

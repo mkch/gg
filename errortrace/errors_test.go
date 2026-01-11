@@ -90,3 +90,12 @@ github.com/mkch/gg/errortrace.Test_Errorf()
 		t.Fatalf("output did not match expected:\n%s", output)
 	}
 }
+
+func Test_WithStackFrames_Panics(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Fatalf("expected panic")
+		}
+	}()
+	WithStackFrames(nil, 0, 0, false)
+}
