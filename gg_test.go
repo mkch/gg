@@ -120,3 +120,25 @@ func TestChainError(t *testing.T) {
 		t.Fatalf("should contain err2")
 	}
 }
+
+func TestZero(t *testing.T) {
+	var zInt int = gg.Zero[int]()
+	if zInt != 0 {
+		t.Fatalf("expected 0, got %v", zInt)
+	}
+
+	var zStr string = gg.Zero[string]()
+	if zStr != "" {
+		t.Fatalf("expected empty string, got %v", zStr)
+	}
+
+	var zPtr *struct{} = gg.Zero[*struct{}]()
+	if zPtr != nil {
+		t.Fatalf("expected nil, got %v", zPtr)
+	}
+
+	var zStruct struct{} = gg.Zero[struct{}]()
+	if zStruct != struct{}{} {
+		t.Fatalf("expected zero struct, got %v", zStruct)
+	}
+}

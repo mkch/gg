@@ -54,3 +54,8 @@ func CollectError(f func() error, dest *error) {
 		func() error { return errors.Join(*dest, err) },
 	)
 }
+
+// Zero returns the zero value of type T.
+func Zero[T any]() (zero T) {
+	return
+}
