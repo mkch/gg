@@ -113,29 +113,29 @@ func TestClear(t *testing.T) {
 }
 
 const SmallN = 1024 * 10
-const LargeN = 1024 * 100
+const LargeN = 1024 * 500
 
 func BenchmarkClearSafeSmall(b *testing.B) {
-	var n [SmallN]int
+	var n [SmallN]byte
 	for b.Loop() {
 		clearSafe(&n)
 	}
 }
 func BenchmarkClearSmall(b *testing.B) {
-	var n [SmallN]int
+	var n [SmallN]byte
 	for b.Loop() {
 		Clear(&n)
 	}
 }
 
 func BenchmarkClearSafeLarge(b *testing.B) {
-	var n [LargeN]int
+	var n [LargeN]byte
 	for b.Loop() {
 		clearSafe(&n)
 	}
 }
 func BenchmarkClearLarge(b *testing.B) {
-	var n [LargeN]int
+	var n [LargeN]byte
 	for b.Loop() {
 		Clear(&n)
 	}
