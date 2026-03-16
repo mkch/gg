@@ -7,6 +7,11 @@ import (
 	"github.com/mkch/gg/errortrace"
 )
 
+// MustOK calls [errorcheck.MustOK] with [errortrace.Panic] as the [errorcheck.Handler].
+func MustOK(err error) {
+	errorcheck.MustOK(errortrace.Panic, err)
+}
+
 // Must calls [errorcheck.Must] with [errortrace.Panic] as the [errorcheck.Handler].
 func Must[T any](v T, err error) T {
 	return errorcheck.Must(errortrace.Panic, v, err)
